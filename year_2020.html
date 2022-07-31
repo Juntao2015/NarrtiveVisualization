@@ -33,30 +33,30 @@ background-color: #ddd;
 <div align="center">
   <h1>Trend of 3 pointer field goals made vs winning pct in NBA over the years</h1>
   <h2>
-    Season 2017-2018
+    Season 2019-2020
   </h2>
   <p>Hover over the graph for more detail.</p>
 
   <div id="container"></div>
   <div class="pagination">
-    <a class="active" href="index.html">2017-2018</a>
-    <a href="year_2020.html">2019-2020</a>
+    <a href="index.html">2017-2018</a>
+    <a class="active" href="year_2020.html">2019-2020</a>
     <a href="year_2022.html">2021-2022</a>
   </div>
 </div>
 
 <body onload='init()'>
-<svg class="graph" width=1200 height=1200>
+<svg class="graph" width=1200 height=1200 left="500px">
 </svg>
 
 <div id="tooltip"></div>
 
 <script>
 async function init() {
-    var data = await d3.csv(
+    const data = await d3.csv(
     "/data/dataSource.csv");
 
-    var data_year = getFilteredData(data, "2018")
+    var data_year = getFilteredData(data, "2020")
 
     xs=d3.scaleLinear().domain([600,1300]).range([0,900]);
     ys=d3.scaleLinear().domain([100,20]).range([0,900]);
@@ -79,8 +79,8 @@ async function init() {
     .attr('r',function(d, i){return 15})
     .on("mouseover", function(d,i) {
         tooltip.style("opacity", 1)
-               .style("left",(x(d.ThreeMade)-40)+"px")
-               .style("top",(y(d.WPCT)-40)+"px")
+               .style("left",(x(d.ThreeMade)-10)+"px")
+               .style("top",(y(d.WPCT)-10)+"px")
                .html(d.Team+"  "+d.YEAR+" WinPct: "+d.WPCT+"%"+" 3PT made: "+d.ThreeMade);
     })
     .on("mouseout", function() {tooltip.style("opacity", 0)});
