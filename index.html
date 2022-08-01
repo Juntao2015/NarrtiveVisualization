@@ -62,7 +62,7 @@ var data_year
 
 async function init() {
     var data = await d3.csv(
-    "/data/dataSource.csv");
+    "data/dataSource.csv");
 
     data_year = getFilteredDataByYear(data, "2018");
     draw(data_year);
