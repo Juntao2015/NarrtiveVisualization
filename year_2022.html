@@ -62,7 +62,7 @@ var data_year
 
 async function init() {
     var data = await d3.csv(
-    "data/dataSource.csv");
+    "https://raw.githubusercontent.com/juntao2015/NarrtiveVisualization/master/data/dataSource.csv");
 
     data_year = getFilteredDataByYear(data, "2022");
     draw(data_year);
