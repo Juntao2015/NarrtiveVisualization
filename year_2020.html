@@ -1,7 +1,7 @@
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
 <style>
-.graph circle {fill: lightblue; stroke: black;}
+.graph circle { stroke: black;}
 #tooltip {
     opacity: 0;
     position: absolute;
@@ -43,20 +43,100 @@ background-color: #ddd;
     <a class="active" href="year_2020.html">2019-2020</a>
     <a href="year_2022.html">2021-2022</a>
   </div>
+
+  <div id="slider_area" display="inline-block">
+  <h4> Slide the bar and give the 3pts made lower bound</h4>
+  <input type="range" min=600 max=1300 step=1 id="threeLowBound" value=600 direction=rtl oninput="three_point_made_lower_bound.value = threeLowBound.value" top="100px">
+  <output name="three_point_made_lower_bound" id="three_point_made_lower_bound">600</output>
+  </div>
 </div>
 
 <body onload='init()'>
-<svg class="graph" width=1200 height=1200 left="500px">
+<svg class="graph" width=2000 height=2000>
 </svg>
 
 <div id="tooltip"></div>
 
 <script>
+var data_year
+
 async function init() {
-    const data = await d3.csv(
+    var data = await d3.csv(
     "/data/dataSource.csv");
 
-    var data_year = getFilteredData(data, "2020")
+    data_year = getFilteredDataByYear(data, "2020");
+    draw(data_year);
+}
+
+init();
+
+var slider = d3.select('#threeLowBound');
+slider.on('change', function() {
+    updateData(data_year, this.value);
+});
+
+function draw(data) {
+    xs=d3.scaleLinear().domain([600,1300]).range([0,900]);
+    ys=d3.scaleLinear().domain([100,20]).range([0,900]);
+
+    x=d3.scaleLinear().domain([600,1300]).range([0,900]);
+    y=d3.scaleLinear().domain([100,20]).range([0,900]);
+
+    var tooltip = d3.select("#tooltip");
+    var circle = d3.select("circle");
+
+    d3.select('body')
+    .select(".graph")
+    .append('g')
+    .attr('transform','translate(750,50)')
+    .selectAll('circle')
+    .data(data)
+    .enter()
+    .append('circle')
+    .attr('cx',function(d,i){return x(d.ThreeMade)})
+    .attr('cy',function(d,i){return y(d.WPCT)})
+    .attr('r',function(d, i){return 15})
+    .attr('fill', function(d){return d.Team === "Milwaukee Bucks" ? "orange": "lightblue"})
+    .on("mouseover", function(d,i) {
+        tooltip.style("opacity", 1)
+               .style("left",(x(d.ThreeMade)+800)+"px")
+               .style("top",(y(d.WPCT)+150)+"px")
+               .html(d.Team+"  "+d.YEAR+" WinPct: "+d.WPCT+"%"+" 3PT made: "+d.ThreeMade);
+    })
+    .on("mouseout", function() {tooltip.style("opacity", 0)});
+
+    d3.select('svg').append('g')
+    .attr('transform','translate(750,50)')
+    .call(d3.axisLeft(ys).tickValues([20,30,40,50,60,70,80,90,100]).tickFormat(d3.format("~s")));
+
+    d3.select('svg').append('g')
+    .attr('transform','translate(750,950)')
+    .call(d3.axisBottom(xs).tickValues([600,700,800,900,1000,1100,1200,1300]).tickFormat(d3.format("~s")));
+
+     d3.select('svg').append('text')
+    .attr('transform','translate(750,800)')
+    .attr("y", 175)
+    .attr("x", 450)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Total 3 pointer field goals made in this season")
+    .style("font-family", "Lato")
+    .style("font-size", "30px");
+
+     d3.select('svg').append('text')
+    .attr('transform','rotate(-90)')
+    .attr("y", 650)
+    .attr("x", -400)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Winning Percentage in this season")
+    .style("font-family", "Lato")
+    .style("font-size", "30px");
+}
+
+function updateData(data, three_low_bound) {
+    d3.selectAll('circle').remove();
+    var data_filtered = getFilteredDataByThreeMade(data, three_low_bound);
 
     xs=d3.scaleLinear().domain([600,1300]).range([0,900]);
     ys=d3.scaleLinear().domain([100,20]).range([0,900]);
@@ -65,37 +145,63 @@ async function init() {
     y=d3.scaleLinear().domain([100,20]).range([0,900]);
 
     var tooltip = d3.select("#tooltip");
+    var circle = d3.select("circle");
 
     d3.select('body')
     .select(".graph")
     .append('g')
-    .attr('transform','translate(50,50)')
+    .attr('transform','translate(750,50)')
     .selectAll('circle')
-    .data(data_year)
+    .data(data_filtered)
     .enter()
     .append('circle')
     .attr('cx',function(d,i){return x(d.ThreeMade)})
     .attr('cy',function(d,i){return y(d.WPCT)})
     .attr('r',function(d, i){return 15})
+    .attr('fill', function(d){return d.Team === "Milwaukee Bucks" ? "orange": "lightblue"})
     .on("mouseover", function(d,i) {
         tooltip.style("opacity", 1)
-               .style("left",(x(d.ThreeMade)-10)+"px")
-               .style("top",(y(d.WPCT)-10)+"px")
+               .style("left",(x(d.ThreeMade)+800)+"px")
+               .style("top",(y(d.WPCT)+150)+"px")
                .html(d.Team+"  "+d.YEAR+" WinPct: "+d.WPCT+"%"+" 3PT made: "+d.ThreeMade);
     })
     .on("mouseout", function() {tooltip.style("opacity", 0)});
 
     d3.select('svg').append('g')
-    .attr('transform','translate(50,50)')
+    .attr('transform','translate(750,50)')
     .call(d3.axisLeft(ys).tickValues([20,30,40,50,60,70,80,90,100]).tickFormat(d3.format("~s")));
 
     d3.select('svg').append('g')
-    .attr('transform','translate(50,950)')
+    .attr('transform','translate(750,950)')
     .call(d3.axisBottom(xs).tickValues([600,700,800,900,1000,1100,1200,1300]).tickFormat(d3.format("~s")));
+
+     d3.select('svg').append('text')
+    .attr('transform','translate(750,800)')
+    .attr("y", 175)
+    .attr("x", 450)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Total 3 pointer field goals made in this season")
+    .style("font-family", "Lato")
+    .style("font-size", "30px");
+
+     d3.select('svg').append('text')
+    .attr('transform','rotate(-90)')
+    .attr("y", 650)
+    .attr("x", -400)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Winning Percentage in this season")
+    .style("font-family", "Lato")
+    .style("font-size", "30px");
 }
 
-function getFilteredData(data, year) {
+function getFilteredDataByYear(data, year) {
 	return data.filter(function(row) { return row.YEAR === year; });
+}
+
+function getFilteredDataByThreeMade(data, minThrees) {
+	return data.filter(function(row) { return row.ThreeMade > parseInt(minThrees); });
 }
 
 </script>
